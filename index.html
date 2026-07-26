@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Word of the Day | MukhPage</title>
+    <meta name="description" content="Today's word of the day, published straight from the MukhPage content pipeline." />
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+            background: #fdf5f4;
+            color: #1f2937;
+            padding: 24px 16px;
+            line-height: 1.55;
+        }
+
+        .card {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #f3d3d0;
+            border-radius: 16px;
+            padding: 28px 24px;
+            box-shadow: 0 2px 12px rgba(220, 38, 38, 0.06);
+        }
+
+        .kicker {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #dc2626;
+        }
+
+        h1 {
+            margin-top: 6px;
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1.1;
+            word-wrap: break-word;
+        }
+
+        .sub {
+            margin-top: 4px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        h2 {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        section {
+            margin-top: 22px;
+        }
+
+        .vibe {
+            margin-top: 18px;
+            background: rgba(220, 38, 38, 0.08);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-style: italic;
+            color: #991b1b;
+            font-size: 15px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .fact p:last-child {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            display: flex;
+            gap: 8px;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        li::before {
+            content: '▸';
+            color: #ef4444;
+        }
+
+        .box {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .options button {
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            border-radius: 999px;
+            padding: 6px 16px;
+        }
+
+        .options button:hover:not(:disabled) {
+            border-color: #f87171;
+        }
+
+        .options button.correct {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: #fff;
+        }
+
+        .options button.wrong {
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #fff;
+        }
+
+        .verdict {
+            margin-top: 10px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        footer {
+            max-width: 640px;
+            margin: 16px auto 0;
+            font-size: 12px;
+            color: #9ca3af;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        footer a {
+            color: #9ca3af;
+        }
+
+        .status {
+            max-width: 640px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #f3d3d0;
+            border-radius: 16px;
+            padding: 28px 24px;
+            font-size: 15px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="root">
+        <div class="status">Loading today's word…</div>
+    </main>
+    <footer>
+        <span id="stamp"></span>
+        <span><a href="https://github.com/Utsavv/mukhpage-content">mukhpage-content</a></span>
+    </footer>
+
+    <script>
+        // The pipeline (sara_content_product/core/publishing/github_static.py) rewrites
+        // word_of_the_day/latest.json on every publish, so this page always shows the
+        // word that was published last. Relative first (GitHub Pages), CDN as a fallback
+        // for when this file is opened from anywhere else.
+        var SOURCES = [
+            'word_of_the_day/latest.json',
+            'https://cdn.jsdelivr.net/gh/Utsavv/mukhpage-content@main/word_of_the_day/latest.json'
+        ];
+        var OPTION_KEYS = ['option_a', 'option_b', 'option_c', 'option_d'];
+
+        function esc(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+            });
+        }
+
+        function fetchLatest(index) {
+            index = index || 0;
+            if (index >= SOURCES.length) return Promise.reject(new Error('no source reachable'));
+            return fetch(SOURCES[index], { cache: 'no-cache' })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
+                .catch(function () { return fetchLatest(index + 1); });
+        }
+
+        function render(payload) {
+            var story = payload.story || {};
+            var quiz = story.quiz || {};
+            var examples = (story.personalized_examples || []).map(function (line) {
+                return '<li><span>' + esc(line) + '</span></li>';
+            }).join('');
+            var options = OPTION_KEYS.filter(function (key) { return quiz[key]; }).map(function (key) {
+                return '<button type="button" data-key="' + key + '">' + esc(quiz[key]) + '</button>';
+            }).join('');
+
+            document.getElementById('root').innerHTML =
+                '<article class="card">' +
+                '<p class="kicker">Word of the Day</p>' +
+                '<h1>' + esc(story.word || payload.item) + '</h1>' +
+                '<p class="sub">' + esc(story.pronunciation) + ' · ' + esc(story.part_of_speech) + '</p>' +
+                (story.vibe_check ? '<p class="vibe">' + esc(story.vibe_check) + '</p>' : '') +
+                '<section class="grid">' +
+                '<div class="fact"><h2>Meaning</h2><p>' + esc(story.english_definition) + '</p></div>' +
+                '<div class="fact"><h2>Hindi</h2><p>' + esc(story.hindi_meaning) + '</p></div>' +
+                '<div class="fact"><h2>Synonym / Antonym</h2><p>' + esc(story.synonym) + ' · ' + esc(story.antonym) + '</p></div>' +
+                '</section>' +
+                (examples ? '<section><h2>In a sentence</h2><ul>' + examples + '</ul></section>' : '') +
+                '<section class="grid">' +
+                '<div class="box"><h2>🧠 Memory trick</h2><p>' + esc(story.mnemonic) + '</p></div>' +
+                '<div class="box"><h2>🎯 Exam tip</h2><p>' + esc(story.exam_tip) + '</p></div>' +
+                '</section>' +
+                (options
+                    ? '<section><h2>⚡ Quick quiz — ' + esc(quiz.question) + '</h2>' +
+                    '<div class="options">' + options + '</div><p class="verdict" id="verdict"></p></section>'
+                    : '') +
+                '</article>';
+
+            wireQuiz(quiz);
+            var stamp = document.getElementById('stamp');
+            stamp.textContent = payload.published_at ? 'Published ' + payload.published_at : '';
+            if (payload.static_html_url) {
+                stamp.innerHTML = esc(stamp.textContent) +
+                    ' · <a href="' + esc(payload.static_html_url) + '">shareable page</a>';
+            }
+        }
+
+        function wireQuiz(quiz) {
+            var buttons = Array.prototype.slice.call(document.querySelectorAll('.options button'));
+            buttons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var picked = button.getAttribute('data-key');
+                    var right = quiz.correct_option;
+                    buttons.forEach(function (other) {
+                        other.disabled = true;
+                        var key = other.getAttribute('data-key');
+                        if (key === right) other.className = 'correct';
+                        else if (key === picked) other.className = 'wrong';
+                    });
+                    document.getElementById('verdict').textContent = picked === right
+                        ? 'Correct — you ate that. 🔥'
+                        : 'Not quite — it’s "' + (quiz[right] || '') + '".';
+                });
+            });
+        }
+
+        fetchLatest().then(render).catch(function () {
+            document.getElementById('root').innerHTML =
+                '<div class="status">No word published yet. The MukhPage pipeline writes ' +
+                '<code>word_of_the_day/latest.json</code> on its next run.</div>';
+        });
+    </script>
+</body>
+
+</html>
